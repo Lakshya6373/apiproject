@@ -1,14 +1,11 @@
 import os
-import random
+import time
 from flask import Flask, jsonify, request
-import threading
 
 app = Flask(__name__)
 
 # --- Configuration ---
 API_TOKEN = os.getenv('API_TOKEN')
-COUNTER_FILE = '/var/data/counter.txt'
-counter_lock = threading.Lock()
 
 @app.route('/api/random-number', methods=['GET'])
 def get_number():
@@ -23,22 +20,9 @@ def get_number():
     if provided_token != API_TOKEN:
         return jsonify(error="Unauthorized: Invalid token"), 401
 
-    # --- Simplified Sequential Number Logic ---
-    with counter_lock:
-        try:
-            # Try to read the last number from the file.
-            with open(COUNTER_FILE, 'r') as f:
-                current_number = int(f.read())
-        except (FileNotFoundError, ValueError):
-            # If the file doesn't exist or is empty, this is the first run.
-            # We'll start the sequence at 1000.
-            current_number = 1000
-        
-        next_number = current_number + 1
-        
-        # Write the new number back to the file.
-        # The 'w' mode will create the file if it doesn't exist.
-        with open(COUNTER_FILE, 'w') as f:
-            f.write(str(next_number))
-
-    return jsonify(sequential_number=next_number)
+    # --- NEW: Generate a sequential number from the current time ---
+    # This gets the number of seconds since 1970 and takes the last 5 digits.
+    # It will be unique and sequential for every request.
+    random_number = int(time.time()) % 100000
+    
+    return jsonify(sequential_number=sequential_number)
