@@ -23,20 +23,21 @@ def get_number():
     if provided_token != API_TOKEN:
         return jsonify(error="Unauthorized: Invalid token"), 401
 
-    # --- Generate Sequential Number ---
+    # --- Simplified Sequential Number Logic ---
     with counter_lock:
-        # FIX: Ensure the directory exists before trying to access the file
-        os.makedirs(os.path.dirname(COUNTER_FILE), exist_ok=True)
-
         try:
+            # Try to read the last number from the file.
             with open(COUNTER_FILE, 'r') as f:
                 current_number = int(f.read())
         except (FileNotFoundError, ValueError):
-            # If the file doesn't exist or is empty, start at 1000
+            # If the file doesn't exist or is empty, this is the first run.
+            # We'll start the sequence at 1000.
             current_number = 1000
-
+        
         next_number = current_number + 1
-
+        
+        # Write the new number back to the file.
+        # The 'w' mode will create the file if it doesn't exist.
         with open(COUNTER_FILE, 'w') as f:
             f.write(str(next_number))
 
