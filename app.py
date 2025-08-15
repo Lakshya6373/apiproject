@@ -7,9 +7,7 @@ app = Flask(__name__)
 
 # --- Configuration ---
 API_TOKEN = os.getenv('API_TOKEN')
-# The counter file will be stored on a persistent disk at this path
 COUNTER_FILE = '/var/data/counter.txt'
-# A lock to prevent race conditions
 counter_lock = threading.Lock()
 
 @app.route('/api/random-number', methods=['GET'])
@@ -27,17 +25,19 @@ def get_number():
 
     # --- Generate Sequential Number ---
     with counter_lock:
+        # FIX: Ensure the directory exists before trying to access the file
+        os.makedirs(os.path.dirname(COUNTER_FILE), exist_ok=True)
+
         try:
             with open(COUNTER_FILE, 'r') as f:
                 current_number = int(f.read())
         except (FileNotFoundError, ValueError):
             # If the file doesn't exist or is empty, start at 1000
             current_number = 1000
-        
+
         next_number = current_number + 1
-        
+
         with open(COUNTER_FILE, 'w') as f:
             f.write(str(next_number))
 
-    # The JSON key is now 'sequential_number' for clarity
     return jsonify(sequential_number=next_number)
