@@ -1,11 +1,22 @@
 import os
-import time
+import redis
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
 # --- Configuration ---
 API_TOKEN = os.getenv('API_TOKEN')
+REDIS_URL = os.getenv('REDIS_URL')
+
+# --- Connect to Redis ---
+try:
+    redis_client = redis.from_url(REDIS_URL)
+    # Set the counter to 1000 only if it doesn't already exist
+    redis_client.setnx('api_counter', 1000)
+except Exception as e:
+    redis_client = None
+    print(f"Could not connect to Redis: {e}")
+
 
 @app.route('/api/random-number', methods=['GET'])
 def get_number():
@@ -20,9 +31,11 @@ def get_number():
     if provided_token != API_TOKEN:
         return jsonify(error="Unauthorized: Invalid token"), 401
 
-    # --- NEW: Generate a sequential number from the current time ---
-    # This gets the number of seconds since 1970 and takes the last 5 digits.
-    # It will be unique and sequential for every request.
-    sequential_number = int(time.time()) % 100000
+    # --- Generate Sequential Number from Redis ---
+    if not redis_client:
+        return jsonify(error="Server error: Database connection failed"), 500
+
+    # Atomically increment the counter and get the new value
+    next_number = redis_client.incr('api_counter')
     
-    return jsonify(sequential_number=sequential_number)
+    return jsonify(sequential_number=next_number)
