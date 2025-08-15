@@ -3,7 +3,8 @@ services:
     name: random-number-api
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn --workers 4 --bind 0.0.0.0:$PORT api:app"
+    # This line has been corrected to point to api.py
+    startCommand: "gunicorn api:app"
     envVars:
       - key: API_TOKEN
-        sync: false # We will set this in the dashboard for security
+        sync: false
