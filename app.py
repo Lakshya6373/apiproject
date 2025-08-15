@@ -23,6 +23,6 @@ def get_number():
     # --- NEW: Generate a sequential number from the current time ---
     # This gets the number of seconds since 1970 and takes the last 5 digits.
     # It will be unique and sequential for every request.
-    random_number = int(time.time()) % 100000
+    sequential_number = int(time.time()) % 100000
     
     return jsonify(sequential_number=sequential_number)
