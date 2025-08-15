@@ -4,7 +4,7 @@ services:
     env: python
     buildCommand: "pip install -r requirements.txt"
     # This line has been corrected to point to api.py
-    startCommand: "gunicorn api:app"
+    startCommand: "gunicorn app:app"
     envVars:
       - key: API_TOKEN
         sync: false
